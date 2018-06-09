@@ -44,7 +44,7 @@ def getargument(lines):
     conditionstack = list()
     temparg = ""
     tempargtype = ""
-    argnum = 0
+    argnum = -1
     for row, line in enumerate(lines):
         i = 0
         while i < len(line):
@@ -62,6 +62,7 @@ def getargument(lines):
             elif conditionstack[-1] == "()":
                 if line[i].isalpha():
                     tempargpos = (row, i)
+                    argnum += 1
                     conditionstack.append("arg")
                 elif line[i] == "=":
                     conditionstack.append("=")
@@ -72,17 +73,16 @@ def getargument(lines):
                     argdict[argnum]["arg"] = temparg
                     if tempargtype != "":
                         argdict[argnum]["type"] = tempargtype
-                    argnum += 1
                     temparg = ""
                     tempargtype = ""
                     i += 1
                 elif line[i] == ")":
-                    argdict[argnum] = dict()
-                    argdict[argnum]["pos"] = tempargpos
-                    argdict[argnum]["arg"] = temparg
-                    if tempargtype != "":
-                        argdict[argnum]["type"] = tempargtype
-                    argnum += 1
+                    if argnum >= 0:
+                        argdict[argnum] = dict()
+                        argdict[argnum]["pos"] = tempargpos
+                        argdict[argnum]["arg"] = temparg
+                        if tempargtype != "":
+                            argdict[argnum]["type"] = tempargtype
                     conditionstack.pop()
                     argdict[-1] = dict()
                     argdict[-1]["pos"] = (row, i)
@@ -226,6 +226,7 @@ def getargument(lines):
 if __name__ == "__main__":
     print(count("def f(a=\"(\"", (0, 0, None)))
     print(getargument(["def f(a =1) -> int:"]))
+    print(getargument(["def f() -> int:"]))
     print(getargument(["def f(a, b_t) -> int:"]))
     print(getargument(["def f(a: int, b) -> int:"]))
     print(getargument(["def f(a = \"hello\", b)"]))
