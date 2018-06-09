@@ -94,7 +94,7 @@ def getargument(lines):
                 else:
                     i += 1
             elif conditionstack[-1] == "arg":
-                if line[i].isalpha():
+                if line[i].isalpha() or line[i].isdigit() or line[i] == "_":
                     temparg += line[i]
                     i += 1
                 elif line[i] == "=" or line[i] == " " or line[i] == "," or line[i] == ")":
@@ -165,7 +165,7 @@ def getargument(lines):
                     continue
                 i += 1
             elif conditionstack[-1] == '"' or conditionstack[-1] == "'":
-                if line[i] == '"':
+                if line[i] == conditionstack[-1]:
                     conditionstack.pop()
                     i += 1
                 elif line[i] == "\\":
@@ -226,9 +226,10 @@ def getargument(lines):
 if __name__ == "__main__":
     print(count("def f(a=\"(\"", (0, 0, None)))
     print(getargument(["def f(a =1) -> int:"]))
-    print(getargument(["def f(a, b) -> int:"]))
+    print(getargument(["def f(a, b_t) -> int:"]))
     print(getargument(["def f(a: int, b) -> int:"]))
     print(getargument(["def f(a = \"hello\", b)"]))
     print(getargument(["def f(a = (1, 2, 3), b = [4, 5, 6])"]))
     print(getargument(["def f(a = \"()))\")"]))
     print(getargument(["def f(a=10, ", "    b: int)"]))
+    print(getargument(["    def __init__(self, varname='?', freqs=None):"]))

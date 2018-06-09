@@ -97,8 +97,8 @@ if __name__ == "__main__":
 
     @recordparametertype
     def g(b):
-        return len(b)
+        return
 
     g(range(10))
     g([1, 2, 3])
-    logfunctionparameters()
+    print(FUNCTION)

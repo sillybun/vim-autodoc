@@ -192,6 +192,8 @@ class ZYTType:
                         typestr = temptype.fromPEP484(typestr[1:])
                         self.subtype.append(temptype)
                     return typestr[1:]
+                else:
+                    return typestr
         self.classname = ""
         for t in typestr:
             if t == "]" or t == ",":
@@ -245,7 +247,10 @@ class ZYTType:
         elif self.type is not None:
             rstr: str = self.CompondPEP484[self.type]
             if self.subtype is None:
-                return rstr + "[()]"
+                if self.type == type(tuple()):
+                    return rstr + "[()]"
+                else:
+                    return rstr
             else:
                 rstr += "["
                 rstr += ", ".join(t.generatepep484() for t in self.subtype)
@@ -254,7 +259,7 @@ class ZYTType:
                 rstr += "]"
             return rstr
         elif self.classname is not None:
-            return self.classname
+            return '"' + self.classname.split(".")[-1] + '"'
         else:
             return "Any"
 
