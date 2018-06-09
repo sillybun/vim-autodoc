@@ -1,0 +1,6 @@
+A.f>>0:A;1:int;2:int;
+A.g>>0:A;1:int;2:int;
+A.g.<locals>.f>>0:int;1:int;
+g>>0:int;1:int;
+g.<locals>.f>>0:int;1:int;
+f>>0:int,float;1:int,float;

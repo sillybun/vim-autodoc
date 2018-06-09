@@ -1,0 +1,1 @@
+{"A.f": {"parameters": {"0": ["__main__.A"], "1": ["int"], "2": ["float", "int"]}, "analysis": {"callnumber": 2, "collapsetime": 2.1457672119140625e-06}, "return": ["float", "int"]}, "g": {"parameters": {"0": ["list[int]", "range"]}, "analysis": {"callnumber": 2, "collapsetime": 9.5367431640625e-07}, "return": ["int"]}}
