@@ -2,6 +2,8 @@ import json
 from typing import Dict, Optional, Set
 
 import vimbufferutil
+import typestyle
+import time
 
 
 class FunctionAna:
@@ -49,7 +51,8 @@ def adddocstring_paramtype(
                 tfc: vimbufferutil.FunctionCode = fc
                 commentspace = " " * (4 * (fc.indentlevel + 1))
                 abc.addandwait(commentspace + '"""', fc.endline + 1)
-                for index, param in enumerate(fc.functionargs):
+                for index in fc.functionargsdict:
+                    param = fc.functionargsdict[index]["arg"]
                     if str(index) in funcdict["parameters"]:
                         abc.addandwait(
                             commentspace + "@type " + param + ": " +
@@ -110,21 +113,62 @@ def adddocstring_runtime_info(buffer) -> None:
     abc.conduct(buffer)
 
 
-def addpep484hint(buffer) -> None:
-    functionlog = FunctionAna(".autodocparameters.log")
+def addpep484hint(buffer, returnflag) -> None:
+    # starttime = time.time()
+    logfile = FunctionAna(".autodocparameters.log")
 
     functioncode = vimbufferutil.AllFunctions()
     functioncode.regist(buffer)
 
+    styledecoder = typestyle.ZYTType()
+
     abc = vimbufferutil.AddBufferContent()
-    for func in functionlog.FUNCTION:
-        funcdict = functionlog.FUNCTION[func]
+    for loggedfunc in logfile.FUNCTION:
+        loggedfuncinfo = logfile.FUNCTION[loggedfunc]
         for _fc in functioncode.functions:
             fc: vimbufferutil.FunctionCode = _fc
-            if fc.functionname == func:
+            if fc.functionname == loggedfunc:
                 tfc: vimbufferutil.FunctionCode = fc
+                methodflag = False
+                if "." in loggedfunc and\
+                        loggedfunc.split(".")[-2] != "<locals>":
+                    methodflag = True
+                # print(tfc.functionargsdict)
+                # print(loggedfuncinfo)
+                for index in sorted(tfc.functionargsdict):
+                    if methodflag and index == 0:
+                        continue
+                    if index == -1:
+                        continue
+                    arginfo = tfc.functionargsdict[index]
+                    argpos = arginfo["pos"]
+                    if str(index) in loggedfuncinfo["parameters"]:
+                        if "type" in tfc.functionargsdict[index]:
+                            continue
+                        # print(loggedfuncinfo["parameters"][str(index)])
+                        types = [typestyle.ZYTType().fromdoc(adtype)
+                                 for adtype in loggedfuncinfo["parameters"][str(index)]]
+                        if len(types) == 1:
+                            abc.insertandwait(": " + types[0].generatepep484(), tfc.startline +
+                                              argpos[0] + 1, argpos[1] + len(arginfo["arg"]))
+                        else:
+                            abc.insertandwait(": " + typestyle.unionpep484(types), tfc.startline +
+                                              argpos[0] + 1, argpos[1] + len(arginfo["arg"]))
+                if returnflag and "type" not in tfc.functionargsdict[-1]:
+                    types = [typestyle.ZYTType().fromdoc(adtype)
+                             for adtype in loggedfuncinfo["return"]]
+                    arginfo = tfc.functionargsdict[-1]
+                    argpos = arginfo["pos"]
+                    if len(types) == 1:
+                        abc.insertandwait(" -> " + types[0].generatepep484(), tfc.startline +
+                                          argpos[0] + 1, argpos[1] + 1)
+                    else:
+                        abc.insertandwait(" -> " + typestyle.unionpep484(types), tfc.startline +
+                                          argpos[0] + 1, argpos[1] + 1)
 
-
+    abc.conduct(buffer)
+    # endtime = time.time()
+    # print(endtime - starttime)
 
 def main() -> None:
     fa = FunctionAna()

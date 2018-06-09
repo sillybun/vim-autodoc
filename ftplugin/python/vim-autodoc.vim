@@ -33,8 +33,8 @@ import vim
 import countparentheses
 import vimbufferutil
 import autodoc
-
-abc = vimbufferutil.AddBufferContent()
+import time
+from shutil import copyfile
 
 vim.current.buffer.append("import autodocparameters", 0)
 vim.current.buffer.append("from autodocparameters import recordparametertype", 0)
@@ -44,7 +44,8 @@ vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
 path = vim.eval("s:path")
 flag_return_type = (vim.eval("g:autodoc_display_return_type") == "1")
 
-vim.command("!cp {}/parameters.py ./autodocparameters.py".format(path))
+copyfile("{}/parameters.py".format(path), "./autodocparameters.py")
+
 
 for row, line in enumerate(vim.current.buffer):
 	extra = line.lstrip()
@@ -52,6 +53,7 @@ for row, line in enumerate(vim.current.buffer):
 		space = " " * (len(line) - len(extra))
 		vim.current.buffer.append("", row)
 		vim.current.buffer[row] = space + "@recordparametertype"
+
 
 vim.command("w")
 vim.command("!python %")
@@ -61,7 +63,10 @@ vim.command("g/from autodocparameters import recordparametertype/d")
 vim.command("g/@recordparametertype/d")
 vim.command("g/autodocparameters.logfunctionparameters/d")
 
-autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
+if vim.eval("g:autodoc_typehint_style") == "pep484":
+	autodoc.addpep484hint(vim.current.buffer, flag_return_type)
+else:
+	autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
 if vim.eval("g:autodoc_display_runtime_info") == "1":
 	autodoc.adddocstring_runtime_info(vim.current.buffer)
 
@@ -116,7 +121,10 @@ vim.command("g/from autodocparameters import recordparametertype/d")
 vim.command("g/@recordparametertype/d")
 vim.command("g/autodocparameters.logfunctionparameters/d")
 
-autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
+if vim.eval("g:autodoc_typehint_style") == "pep484":
+	autodoc.addpep484hint(vim.current.buffer, flag_return_type)
+else:
+	autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
 if vim.eval("g:autodoc_display_runtime_info") == "1":
 	autodoc.adddocstring_runtime_info(vim.current.buffer)
 
@@ -134,11 +142,15 @@ endfunction
 let s:path = expand('<sfile>:p:h')
 
 if !exists("g:autodoc_display_return_type")
-	let g:autodoc_display_return_type = 0
+	let g:autodoc_display_return_type = 1
 endif
 
 if !exists("g:autodoc_display_runtime_info")
 	let g:autodoc_display_runtime_info = 0
+endif
+
+if !exists("g:autodoc_typehint_style")
+	let g:autodoc_typehint_style = "pep484"
 endif
 
 command! RecordParameter :call s:AddRecordParameterWrapper()

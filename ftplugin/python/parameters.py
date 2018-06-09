@@ -13,9 +13,9 @@ def recordparametertype(func):
             return "list[" + gettypename(sth[0]) + "]"
         elif isinstance(sth, tuple) and len(sth) > 0:
             if len(sth) <= 5:
-                return "tuple(" + ",".join(
+                return "tuple[" + ",".join(
                     [gettypename(sth[i]) for i in range(len(sth))]
-                ) + ")"
+                ) + "]"
             else:
                 flag = True
                 for i in range(1, len(sth)):
@@ -23,17 +23,17 @@ def recordparametertype(func):
                         flag = False
                         break
                 if flag:
-                    return "tuple(" + gettypename(sth[0]) + "...)"
+                    return "tuple[" + gettypename(sth[0]) + ",...]"
                 else:
-                    return "tuple(" + ",".join(
+                    return "tuple[" + ",".join(
                         [gettypename(sth[i]) for i in range(5)]
-                    ) + "...)"
+                    ) + ",...]"
         elif isinstance(sth, set) and len(sth) > 0:
-            return "set(" + gettypename(list(sth)[0]) + ")"
+            return "set[" + gettypename(list(sth)[0]) + "]"
         elif isinstance(sth, dict) and len(sth) > 0:
             key = list(sth.keys())[0]
-            return "dict(" + gettypename(key) +\
-                    "=>" + gettypename(sth[key]) + ")"
+            return "dict[" + gettypename(key) +\
+                    "," + gettypename(sth[key]) + "]"
         else:
             typestr = str(_type)
             return typestr[(typestr.find("'") + 1):typestr.rfind("'")]

@@ -1,3 +1,4 @@
+from ipdb import set_trace
 def count(line, prev):
     """
     @type line: str
@@ -39,44 +40,75 @@ def count(line, prev):
 
 
 def getargument(lines):
-    """
-    @type lines: list[str]
-    """
-    args = ""
+    argdict = dict()
     conditionstack = list()
-    for line in lines:
+    temparg = ""
+    tempargtype = ""
+    argnum = 0
+    for row, line in enumerate(lines):
         i = 0
         while i < len(line):
             if len(conditionstack) == 0:
                 if line[i] == "(":
                     conditionstack.append("()")
+                elif line[i:].startswith("->"):
+                    conditionstack.append("->")
+                    i += 1
+                elif line[i] == ":" or (row == (len(lines) - 1) and i == (len(line) - 1)):
+                    if tempargtype != "":
+                        argdict[-1]["type"] = tempargtype
+
                 i += 1
             elif conditionstack[-1] == "()":
                 if line[i].isalpha():
+                    tempargpos = (row, i)
                     conditionstack.append("arg")
                 elif line[i] == "=":
                     conditionstack.append("=")
                     i += 1
                 elif line[i] == ",":
-                    args += ","
+                    argdict[argnum] = dict()
+                    argdict[argnum]["pos"] = tempargpos
+                    argdict[argnum]["arg"] = temparg
+                    if tempargtype != "":
+                        argdict[argnum]["type"] = tempargtype
+                    argnum += 1
+                    temparg = ""
+                    tempargtype = ""
                     i += 1
                 elif line[i] == ")":
+                    argdict[argnum] = dict()
+                    argdict[argnum]["pos"] = tempargpos
+                    argdict[argnum]["arg"] = temparg
+                    if tempargtype != "":
+                        argdict[argnum]["type"] = tempargtype
+                    argnum += 1
                     conditionstack.pop()
-                    break
+                    argdict[-1] = dict()
+                    argdict[-1]["pos"] = (row, i)
+                    tempargtype = ""
+                    temparg = ""
+                elif line[i] == ":":
+                    conditionstack.append(":")
+                    i += 1
                 else:
                     i += 1
             elif conditionstack[-1] == "arg":
                 if line[i].isalpha():
-                    args += line[i]
+                    temparg += line[i]
                     i += 1
                 elif line[i] == "=" or line[i] == " " or line[i] == "," or line[i] == ")":
                     conditionstack.pop()
                 elif line[i] == ":":
                     conditionstack.append(":")
                     i += 1
+                elif line[i] == ",":
+                    conditionstack.pop()
                 else:
                     i += 1
             elif conditionstack[-1] == ":":
+                if line[i] != "," and line[i] != ")" and line[i] != " ":
+                    tempargtype += line[i]
                 if line[i] == '"':
                     conditionstack.append('"')
                 elif line[i] == "'":
@@ -87,7 +119,30 @@ def getargument(lines):
                     conditionstack.append("{")
                 elif line[i] == "(":
                     conditionstack.append("(")
+                elif line[i] == ")":
+                    conditionstack.pop()
+                    continue
                 elif line[i] == ",":
+                    conditionstack.pop()
+                    continue
+                i += 1
+            elif conditionstack[-1] == "->":
+                if line[i] != "," and\
+                        line[i] != ")" and\
+                        line[i] != " " and\
+                        line[i] != ":":
+                    tempargtype += line[i]
+                if line[i] == '"':
+                    conditionstack.append('"')
+                elif line[i] == "'":
+                    conditionstack.append("'")
+                elif line[i] == "[":
+                    conditionstack.append("[")
+                elif line[i] == "{":
+                    conditionstack.append("{")
+                elif line[i] == "(":
+                    conditionstack.append("(")
+                elif line[i] == ":":
                     conditionstack.pop()
                     continue
                 i += 1
@@ -102,6 +157,9 @@ def getargument(lines):
                     conditionstack.append("{")
                 elif line[i] == "(":
                     conditionstack.append("(")
+                elif line[i] == ")":
+                    conditionstack.pop()
+                    continue
                 elif line[i] == ",":
                     conditionstack.pop()
                     continue
@@ -115,6 +173,8 @@ def getargument(lines):
                 else:
                     i += 1
             elif conditionstack[-1] == "[":
+                if ":" in conditionstack or "->" in conditionstack:
+                    tempargtype += line[i]
                 if line[i] == '"':
                     conditionstack.append('"')
                 elif line[i] == "'":
@@ -156,7 +216,7 @@ def getargument(lines):
                 elif line[i] == "}":
                     conditionstack.pop()
                 i += 1
-    return args
+    return argdict
 
 
 
@@ -165,7 +225,9 @@ def getargument(lines):
 
 if __name__ == "__main__":
     print(count("def f(a=\"(\"", (0, 0, None)))
-    print(getargument(["def f(a: int, b)"]))
+    print(getargument(["def f(a =1) -> int:"]))
+    print(getargument(["def f(a, b) -> int:"]))
+    print(getargument(["def f(a: int, b) -> int:"]))
     print(getargument(["def f(a = \"hello\", b)"]))
     print(getargument(["def f(a = (1, 2, 3), b = [4, 5, 6])"]))
     print(getargument(["def f(a = \"()))\")"]))

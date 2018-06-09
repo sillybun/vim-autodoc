@@ -1,4 +1,4 @@
-from typing import List, Set
+from typing import Dict, List, Set
 
 import countparentheses
 
@@ -6,14 +6,31 @@ import countparentheses
 class AddBufferContent:
 
     def __init__(self):
-        self.adddict = dict()
+        self.adddict: Dict[int, List[str]] = dict()
         self.removeset: Set[int] = set()
+        self.insertdict: Dict[int, Dict[int, List[str]]] = dict()
 
     def addandwait(self, content: str, linenumber: int):
         if linenumber in self.adddict:
             self.adddict[linenumber].append(content)
         else:
             self.adddict[linenumber] = [content]
+
+    def insertandwait(
+        self, content: str, linenumber: int, column: int
+    ) -> None:
+        if linenumber in self.insertdict:
+            if column in self.insertdict[linenumber]:
+                self.insertdict[linenumber][column].append(content)
+            else:
+                self.insertdict[linenumber][column] = [content]
+        else:
+            self.insertdict[linenumber] = dict()
+            self.insertdict[linenumber][column] = [content]
+
+    def insert(self, buffer, content: str, linenumber: int, column: int) -> None:
+        tline: str = buffer[linenumber - 1]
+        buffer[linenumber - 1] = tline[0:column] + content + tline[column:]
 
     def removeandwait(self, linenumber: int):
         self.removeset.add(linenumber)
@@ -27,10 +44,17 @@ class AddBufferContent:
     def conduct(self, buffer):
         alreadyadd = 0
         alreadyremove = 0
-        for i in sorted(set(self.adddict.keys()).union(self.removeset)):
+        for i in sorted(set(self.adddict.keys()).union(self.removeset).\
+                 union(set(self.insertdict.keys()))):
             if i in self.removeset:
                 self.remove(buffer, i + alreadyadd - alreadyremove)
                 alreadyremove += 1
+            elif i in self.insertdict:
+                alreadyinsert = 0
+                for j in sorted(self.insertdict[i].keys()):
+                    for content in self.insertdict[i][j]:
+                        self.insert(buffer, content, i + alreadyadd - alreadyremove, j + alreadyinsert)
+                        alreadyinsert += len(content)
             if i in self.adddict:
                 for content in self.adddict[i]:
                     self.add(buffer, content, i + alreadyadd - alreadyremove)
@@ -51,7 +75,7 @@ class FunctionCode:
         self.containdocstring = False
         tline: str = buffer[startline]
         textra = tline.lstrip()
-        self.functionname = textra[4: textra.find('(')]
+        self.functionname = textra[4:textra.find('(')]
         self.indentlevel = (len(tline) - len(textra)) // 4
         if self.indentlevel != 0:
             indentlevel = self.indentlevel
@@ -63,10 +87,10 @@ class FunctionCode:
                 cindentlevel = (len(cline) - len(cextra)) // 4
                 if cindentlevel == indentlevel - 1:
                     if cextra.startswith("def "):
-                        addname = cextra[4: cextra.find('(')]
+                        addname = cextra[4:cextra.find('(')]
                         self.functionname = addname + ".<locals>." + self.functionname
                     elif cextra.startswith("class "):
-                        addname = cextra[6: cextra.find("(")]
+                        addname = cextra[6:cextra.find("(")]
                         self.functionname = addname + "." + self.functionname
                     indentlevel -= 1
                 if indentlevel == 0:
@@ -79,7 +103,9 @@ class FunctionCode:
                 self.endline += 1
             else:
                 break
-        self.functionargs = countparentheses.getargument(self.functiondefstatement).split(",")
+        self.functionargsdict = countparentheses.getargument(
+            self.functiondefstatement
+        )
         if self.endline < len(buffer) - 1 and\
                 buffer[self.endline + 1].strip().startswith('"""'):
             self.containdocstring = True
@@ -116,6 +142,7 @@ class FunctionCode:
 
 
 class AllFunctions:
+
     def __init__(self):
         self.functions = list()
 
