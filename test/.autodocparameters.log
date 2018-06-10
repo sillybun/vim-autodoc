@@ -1,1 +1,1 @@
-{"main": {"parameters": {}, "analysis": {"callnumber": 1, "collapsetime": 8.606910705566406e-05}, "return": ["NoneType"]}, "gcd": {"parameters": {"0": ["int"], "1": ["int"]}, "analysis": {"callnumber": 2, "collapsetime": 1.6689300537109375e-06}, "return": ["int"]}}
+{}

@@ -5,6 +5,7 @@ import vimbufferutil
 import typestyle
 import time
 
+debug = True
 
 class FunctionAna:
 
@@ -123,6 +124,9 @@ def addpep484hint(buffer, returnflag) -> None:
     styledecoder = typestyle.ZYTType()
 
     abc = vimbufferutil.AddBufferContent()
+    if debug:
+        print(logfile.FUNCTION)
+        print([t.functionname for t in functioncode.functions])
     for loggedfunc in logfile.FUNCTION:
         loggedfuncinfo = logfile.FUNCTION[loggedfunc]
         for _fc in functioncode.functions:
@@ -135,8 +139,9 @@ def addpep484hint(buffer, returnflag) -> None:
                 if "." in loggedfunc and\
                         loggedfunc.split(".")[-2] != "<locals>":
                     methodflag = True
-                # print(tfc.functionargsdict)
-                # print(loggedfuncinfo)
+                if debug:
+                    print(tfc.functionargsdict)
+                    print(loggedfuncinfo)
                 for index in sorted(tfc.functionargsdict):
                     if methodflag and index == 0:
                         continue

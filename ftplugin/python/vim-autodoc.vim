@@ -8,25 +8,25 @@ python3 sys.path.append(vim.eval('expand("<sfile>:h")'))
 " --------------------------------
 "  Function(s)
 " --------------------------------
-function! s:TestUtil() abort
+function! s:TestUtil(...) abort
 python3 << endOfPython
 
 import vim
 import vimbufferutil
 
-abc = vimbufferutil.AddBufferContent()
-
-abc.removeandwait(1)
-abc.addandwait("hello from line2", 2)
-abc.removeandwait(3)
-
-abc.conduct(vim.current.buffer)
+#abc = vimbufferutil.AddBufferContent()
+#
+#abc.removeandwait(1)
+#abc.addandwait("hello from line2", 2)
+#abc.removeandwait(3)
+#
+#abc.conduct(vim.current.buffer)
 
 endOfPython
 endfunction
 
 
-function! s:AddRecordParameterWrapper() abort
+function! s:RecordAllFunctions(...) abort
 python3 << endOfPython
 
 import vim
@@ -38,8 +38,6 @@ from shutil import copyfile
 
 vim.current.buffer.append("import autodocparameters", 0)
 vim.current.buffer.append("from autodocparameters import recordparametertype", 0)
-vim.current.buffer.append("bottom")
-vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
 
 path = vim.eval("s:path")
 flag_return_type = (vim.eval("g:autodoc_display_return_type") == "1")
@@ -56,7 +54,35 @@ for row, line in enumerate(vim.current.buffer):
 
 
 vim.command("w")
-vim.command("!python %")
+otherfile = ""
+if int(vim.eval("a:0")) == 0:
+	vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
+	vim.command("!python %")
+elif vim.eval("a:1").startswith("python"):
+	otherfile = vim.eval("a:2")
+	if otherfile != vim.eval("expand('%')"):
+		with open(otherfile, 'a+') as f:
+			f.write(vim.eval("expand('%:t:r')") + ".autodocparameters.logfunctionparameters()"+'\n')
+		vim.command("!" + " ".join(vim.eval("a:000")))
+	else:
+		otherfile = ""
+		vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
+		vim.command("!" + " ".join(vim.eval("a:000")))
+elif vim.eval("a:1").endswith(".py"):
+	otherfile = vim.eval("a:1")
+	print(otherfile)
+	print(vim.eval("expand('%')"))
+	if otherfile != vim.eval("expand('%')"):
+		with open(otherfile, 'a+') as f:
+			f.write(vim.eval("expand('%:t:r')") + ".autodocparameters.logfunctionparameters()"+'\n')
+		vim.command("!python " + " ".join(vim.eval("a:000")))
+	else:
+		otherfile = ""
+		vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
+		vim.command("!python " + " ".join(vim.eval("a:000")))
+else:
+	vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
+	vim.command("!python % " + " ".join(vim.eval("a:000")))
 
 vim.command("g/import autodocparameters/d")
 vim.command("g/from autodocparameters import recordparametertype/d")
@@ -70,15 +96,23 @@ else:
 if vim.eval("g:autodoc_display_runtime_info") == "1":
 	autodoc.adddocstring_runtime_info(vim.current.buffer)
 
+if otherfile != "":
+	readFile = open(otherfile)
+	lines = readFile.readlines()
+	readFile.close()
+	w = open(otherfile,'w')
+	w.writelines([item for item in lines[:-1]])
+	w.close()
+
 vim.command("w")
 vim.command('call delete("autodocparameters.py")')
-# vim.command('call delete(".autodocparameters.log")')
+vim.command('call delete(".autodocparameters.log")')
 
 endOfPython
 endfunction
 
 
-function! s:RecordCurrentFunction() abort
+function! s:RecordCurrentFunction(...) abort
 python3 << endOfPython
 
 import vim
@@ -105,8 +139,6 @@ for row in range(vim.current.window.cursor[0]-1, -1, -1):
 
 vim.current.buffer.append("import autodocparameters", 0)
 vim.current.buffer.append("from autodocparameters import recordparametertype", 0)
-vim.current.buffer.append("bottom")
-vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
 
 path = vim.eval("s:path")
 flag_return_type = (vim.eval("g:autodoc_display_return_type") == "1")
@@ -114,7 +146,35 @@ flag_return_type = (vim.eval("g:autodoc_display_return_type") == "1")
 vim.command("!cp {}/parameters.py ./autodocparameters.py".format(path))
 
 vim.command("w")
-vim.command("!python %")
+otherfile = ""
+if int(vim.eval("a:0")) == 0:
+	vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
+	vim.command("!python %")
+elif vim.eval("a:1").startswith("python"):
+	otherfile = vim.eval("a:2")
+	if otherfile != vim.eval("expand('%')"):
+		with open(otherfile, 'a+') as f:
+			f.write(vim.eval("expand('%:t:r')") + ".autodocparameters.logfunctionparameters()"+'\n')
+		vim.command("!" + " ".join(vim.eval("a:000")))
+	else:
+		otherfile = ""
+		vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
+		vim.command("!" + " ".join(vim.eval("a:000")))
+elif vim.eval("a:1").endswith(".py"):
+	otherfile = vim.eval("a:1")
+	print(otherfile)
+	print(vim.eval("expand('%')"))
+	if otherfile != vim.eval("expand('%')"):
+		with open(otherfile, 'a+') as f:
+			f.write(vim.eval("expand('%:t:r')") + ".autodocparameters.logfunctionparameters()"+'\n')
+		vim.command("!python " + " ".join(vim.eval("a:000")))
+	else:
+		otherfile = ""
+		vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
+		vim.command("!python " + " ".join(vim.eval("a:000")))
+else:
+	vim.current.buffer[-1] = "autodocparameters.logfunctionparameters()"
+	vim.command("!python % " + " ".join(vim.eval("a:000")))
 
 vim.command("g/import autodocparameters/d")
 vim.command("g/from autodocparameters import recordparametertype/d")
@@ -128,9 +188,18 @@ else:
 if vim.eval("g:autodoc_display_runtime_info") == "1":
 	autodoc.adddocstring_runtime_info(vim.current.buffer)
 
+if otherfile != "":
+	readFile = open(otherfile)
+	lines = readFile.readlines()
+	readFile.close()
+	w = open(otherfile,'w')
+	w.writelines([item for item in lines[:-1]])
+	w.close()
+
+
 vim.command("w")
 vim.command('call delete("autodocparameters.py")')
-# vim.command('call delete(".autodocparameters.log")')
+vim.command('call delete(".autodocparameters.log")')
 
 endOfPython
 endfunction
@@ -153,6 +222,6 @@ if !exists("g:autodoc_typehint_style")
 	let g:autodoc_typehint_style = "pep484"
 endif
 
-command! RecordParameter :call s:AddRecordParameterWrapper()
-command! RecordCurrentFunction :call s:RecordCurrentFunction()
-command! TestUtil :call s:TestUtil()
+command! -nargs=* RecordParameter :call s:RecordAllFunctions(<f-args>)
+command! -nargs=* RecordCurrentFunction :call s:RecordCurrentFunction(<f-args>)
+command! -nargs=* TestUtil :call s:TestUtil(<f-args>)
