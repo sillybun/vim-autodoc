@@ -165,8 +165,11 @@ def addpep484hint(buffer, returnflag) -> None:
                             abc.insertandwait(": " + types[0].generatepep484(), tfc.startline +
                                               argpos[0] + 1, argpos[1] + len(arginfo["arg"]))
                         else:
-                            abc.insertandwait(": " + typestyle.unionpep484(types), tfc.startline +
+                            tline = typestyle.unionpep484(types)
+                            abc.insertandwait(": " + tline, tfc.startline +
                                               argpos[0] + 1, argpos[1] + len(arginfo["arg"]))
+                            if "Optional" in tline:
+                                importset.add("Optional")
                             importset.add("Union")
                 if returnflag and "type" not in tfc.functionargsdict[-1]:
                     types = [typestyle.ZYTType().fromdoc(adtype)

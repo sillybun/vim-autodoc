@@ -192,9 +192,9 @@ class ZYTType:
                     return True
                 else:
                     if self.type != tuple:
-                        if othertype.subtype == None:
+                        if othertype.subtype is None:
                             return True
-                        elif self.subtype == None:
+                        elif self.subtype is None:
                             return False
                         elif len(self.subtype) != len(othertype.subtype):
                             return False
@@ -205,8 +205,8 @@ class ZYTType:
                                 return False
                         return True
                     else:
-                        if othertype.subtype == None or self.subset == None:
-                            return self.subset == None and self.subset == None
+                        if othertype.subtype is None or self.subtype is None:
+                            return self.subtype is None and self.subtype is None
                         elif len(self.subtype) != len(othertype.subtype):
                             return False
                         if self.repeatflag != othertype.repeatflag:
@@ -274,7 +274,10 @@ class ZYTType:
         return self.generatepep484()
 
 def unionpep484(types: List[ZYTType]) -> str:
-    # print(list(t.generatepep484() for t in types))
+    for t in types:
+        if t.type == type(None):
+            newtypes = [t for t in types if t.type != type(None)]
+            return "Optional[{}]".format(unionpep484(newtypes))
     shorttypes = list()
     for i in range(len(types)):
         flag = True
