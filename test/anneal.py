@@ -11,7 +11,6 @@ import random
 import signal
 import sys
 import time
-from typing import Tuple, List, Union
 
 
 def round_figures(x, n):

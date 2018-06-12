@@ -2,10 +2,9 @@ import math
 import random
 from anneal import Annealer
 import anneal
-from typing import List, Dict, Union
 
 
-def distance(a: Tuple[float, float], b: Tuple[float, float]) -> float:
+def distance(a, b):
     """Calculates distance between two latitude-longitude coordinates."""
     R = 3963  # radius of Earth (miles)
     lat1, lon1 = math.radians(a[0]), math.radians(a[1])
@@ -20,17 +19,17 @@ class TravellingSalesmanProblem(Annealer):
     """
 
     # pass extra data (the distance matrix) into the constructor
-    def __init__(self, state: List[str], distance_matrix: Dict[str, Dict[str, float]]) -> None:
+    def __init__(self, state, distance_matrix):
         self.distance_matrix = distance_matrix
         super(TravellingSalesmanProblem, self).__init__(state)  # important!
 
-    def move(self) -> None:
+    def move(self):
         """Swaps two cities in the route."""
         a = random.randint(0, len(self.state) - 1)
         b = random.randint(0, len(self.state) - 1)
         self.state[a], self.state[b] = self.state[b], self.state[a]
 
-    def energy(self) -> float:
+    def energy(self):
         """Calculates the length of the route."""
         e = 0
         for i in range(len(self.state)):

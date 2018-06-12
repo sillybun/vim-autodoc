@@ -1,4 +1,4 @@
-from typing import List, Optional, Type, Dict, Iterable
+from typing import List, Optional, Type, Dict, Iterable, Set
 import types
 import parameters
 
@@ -216,6 +216,33 @@ class ZYTType:
                                 return False
                         return True
         return False
+
+
+    def getpep484import(self) -> Set[str]:
+        if self.basicflag:
+            if self.type == typps.FunctionType:
+                return set(["Callable"])
+            elif self.type == types.BuiltinMethodType:
+                return set(["Callable"])
+            elif self.type == types.BuiltinMethodType:
+                return set(["Callable"])
+            elif self.type == type:
+                return set(["Type"])
+            else:
+                return set([])
+        elif self.type is None:
+            return []
+        else:
+            rimport = set()
+            if self.CompondPEP484[self.type].endswith("[int]"):
+                rimport.add("Iterable")
+            else:
+                rimport.add(self.CompondPEP484[self.type])
+            if self.subtype is not None:
+                for t in self.subtype:
+                    rimport = rimport.union(t.getpep484import())
+            return rimport
+
 
     def generatepep484(self) -> str:
         if self.basicflag:
