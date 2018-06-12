@@ -69,9 +69,7 @@ for row, line in enumerate(vim.current.buffer):
 		vim.current.buffer.append("", row)
 		vim.current.buffer[row] = space + "@recordparametertype"
 
-print("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
 vim.command("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
-#vim.command("call s:RunScript({})".format(", ".join(vim.eval("a:000"))))
 
 if vim.eval("g:autodoc_typehint_style") == "pep484":
 	autodoc.addpep484hint(vim.current.buffer, flag_return_type)
@@ -121,7 +119,6 @@ flag_return_type = (vim.eval("g:autodoc_display_return_type") == "1")
 
 vim.command("!cp {}/parameters.py ./autodocparameters.py".format(path))
 
-print("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
 vim.command("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
 
 if vim.eval("g:autodoc_typehint_style") == "pep484":
@@ -146,43 +143,42 @@ import vim
 import countparentheses
 import autodoc
 
-otherfile = ""
-if int(vim.eval("a:0")) == 0:
-	vim.current.buffer.append("autodocparameters.logfunctionparameters()")
-	vim.command("w")
-	vim.command("!python %")
-elif vim.eval("a:1").startswith("python"):
-	otherfile = vim.eval("a:2")
-	if otherfile != vim.eval("expand('%')"):
-		with open(otherfile, 'a+') as f:
-			f.write(vim.eval("expand('%:t:r')") + ".autodocparameters.logfunctionparameters()"+'\n')
-		vim.command("w")
-		vim.command("!" + " ".join(vim.eval("a:000")))
-	else:
-		otherfile = ""
+try:
+	otherfile = ""
+	if int(vim.eval("a:0")) == 0:
 		vim.current.buffer.append("autodocparameters.logfunctionparameters()")
 		vim.command("w")
-		vim.command("!" + " ".join(vim.eval("a:000")))
-elif vim.eval("a:1").endswith(".py"):
-	otherfile = vim.eval("a:1")
-	print(otherfile)
-	print(vim.eval("expand('%')"))
-	if otherfile != vim.eval("expand('%')"):
-		print(otherfile)
-		with open(otherfile, 'a+') as f:
-			print(otherfile)
-			f.write(vim.eval("expand('%:t:r')") + ".autodocparameters.logfunctionparameters()"+'\n')
-		vim.command("w")
-		vim.command("!python " + " ".join(vim.eval("a:000")))
+		vim.command("!python %")
+	elif vim.eval("a:1").startswith("python"):
+		otherfile = vim.eval("a:2")
+		if otherfile != vim.eval("expand('%')"):
+			with open(otherfile, 'a+') as f:
+				f.write(vim.eval("expand('%:t:r')") + ".autodocparameters.logfunctionparameters()"+'\n')
+			vim.command("w")
+			vim.command("!" + " ".join(vim.eval("a:000")))
+		else:
+			otherfile = ""
+			vim.current.buffer.append("autodocparameters.logfunctionparameters()")
+			vim.command("w")
+			vim.command("!" + " ".join(vim.eval("a:000")))
+	elif vim.eval("a:1").endswith(".py"):
+		otherfile = vim.eval("a:1")
+		if otherfile != vim.eval("expand('%')"):
+			with open(otherfile, 'a+') as f:
+				f.write(vim.eval("expand('%:t:r')") + ".autodocparameters.logfunctionparameters()"+'\n')
+			vim.command("w")
+			vim.command("!python " + " ".join(vim.eval("a:000")))
+		else:
+			otherfile = ""
+			vim.current.buffer.append("autodocparameters.logfunctionparameters()")
+			vim.command("w")
+			vim.command("!python " + " ".join(vim.eval("a:000")))
 	else:
-		otherfile = ""
 		vim.current.buffer.append("autodocparameters.logfunctionparameters()")
 		vim.command("w")
-		vim.command("!python " + " ".join(vim.eval("a:000")))
-else:
-	vim.current.buffer.append("autodocparameters.logfunctionparameters()")
-	vim.command("w")
-	vim.command("!python % " + " ".join(vim.eval("a:000")))
+		vim.command("!python % " + " ".join(vim.eval("a:000")))
+except:
+	pass
 
 vim.command("g/import autodocparameters/d")
 vim.command("g/from autodocparameters import recordparametertype/d")

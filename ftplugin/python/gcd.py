@@ -8,5 +8,4 @@ def gcd(a: int, b: int) -> int:
     return a
 
 if __name__ == "__main__":
-    gcd("str", "str")
     main()
