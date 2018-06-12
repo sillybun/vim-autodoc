@@ -1,11 +1,13 @@
-from parameters import recordparametertype, logfunctionparameters, FUNCTION
+from typing import Union, List, Dict, Set
 
-@recordparametertype
-def f(a: int):
-    for i in range(a):
-        yield i**3
+def f(a: Union[float, int]) -> Union[float, int]:
+    return a + 1
 
-for i in f(3):
-    print(i)
+def g(a: Union[Dict, List, Set]) -> int:
+    return len(a)
 
-print(FUNCTION)
+f(1)
+f(2.0)
+g(list())
+g(set())
+g(dict())

@@ -4,6 +4,7 @@ from typing import Dict, Optional, Set
 import vimbufferutil
 import typestyle
 import time
+import re
 
 debug = True
 
@@ -124,6 +125,9 @@ def addpep484hint(buffer, returnflag) -> None:
     styledecoder = typestyle.ZYTType()
 
     abc = vimbufferutil.AddBufferContent()
+
+    importset: Set[str] = set()
+
     if debug:
         print(logfile.FUNCTION)
         print([t.functionname for t in functioncode.functions])
@@ -155,15 +159,20 @@ def addpep484hint(buffer, returnflag) -> None:
                         # print(loggedfuncinfo["parameters"][str(index)])
                         types = [typestyle.ZYTType().fromdoc(adtype)
                                  for adtype in loggedfuncinfo["parameters"][str(index)]]
+                        for t in types:
+                            importset = importset.union(t.getpep484import())
                         if len(types) == 1:
                             abc.insertandwait(": " + types[0].generatepep484(), tfc.startline +
                                               argpos[0] + 1, argpos[1] + len(arginfo["arg"]))
                         else:
                             abc.insertandwait(": " + typestyle.unionpep484(types), tfc.startline +
                                               argpos[0] + 1, argpos[1] + len(arginfo["arg"]))
+                            importset.add("Union")
                 if returnflag and "type" not in tfc.functionargsdict[-1]:
                     types = [typestyle.ZYTType().fromdoc(adtype)
                              for adtype in loggedfuncinfo["return"]]
+                    for t in types:
+                        importset = importset.union(t.getpep484import())
                     arginfo = tfc.functionargsdict[-1]
                     argpos = arginfo["pos"]
                     if len(types) == 1:
@@ -172,6 +181,40 @@ def addpep484hint(buffer, returnflag) -> None:
                     else:
                         abc.insertandwait(" -> " + typestyle.unionpep484(types), tfc.startline +
                                           argpos[0] + 1, argpos[1] + 1)
+
+
+    start = 0
+    peek = 0
+
+    while True:
+        if buffer[peek].startswith("#"):
+            peek += 1
+        elif buffer[peek].startswith(" "):
+            peek += 1
+        elif buffer[peek].startswith("from"):
+            start = peek + 1
+            peek += 1
+        elif buffer[peek].startswith("import"):
+            start = peek + 1
+            peek += 1
+        else:
+            break
+
+    for i in range(0, start):
+        if buffer[i].startswith("from typing import"):
+            extra = buffer[i][19:]
+            print(extra)
+            extra = re.sub("\s", "", extra)
+            already = set(extra.split(","))
+            importset = importset - already
+            print(already)
+            print(importset)
+            abc.insertandwait(", " + ", ".join(list(importset)), i+1, len(buffer[i]))
+            importset = set()
+            break
+    if len(importset) != 0:
+        abc.addandwait("from typing import " + ", ".join(list(importset)), start)
+        abc.addandwait("", start)
 
     abc.conduct(buffer)
     # endtime = time.time()

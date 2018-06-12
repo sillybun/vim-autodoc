@@ -220,7 +220,7 @@ class ZYTType:
 
     def getpep484import(self) -> Set[str]:
         if self.basicflag:
-            if self.type == typps.FunctionType:
+            if self.type == types.FunctionType:
                 return set(["Callable"])
             elif self.type == types.BuiltinMethodType:
                 return set(["Callable"])
@@ -231,7 +231,7 @@ class ZYTType:
             else:
                 return set([])
         elif self.type is None:
-            return []
+            return set()
         else:
             rimport = set()
             if self.CompondPEP484[self.type].endswith("[int]"):
@@ -295,6 +295,9 @@ def main():
     print(ZYTType().fromvar(sum).generatepep484())
     print(ZYTType().fromvar(range(10)).generatepep484())
     print(ZYTType().fromvar((t for t in range(2))).generatepep484())
+    print(ZYTType().fromvar(sum).getpep484import())
+    print(ZYTType().fromvar(range(10)).getpep484import())
+    print(ZYTType().fromvar((t for t in range(2))).getpep484import())
 
 if __name__ == "__main__":
     main()

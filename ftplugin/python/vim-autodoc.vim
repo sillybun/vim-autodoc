@@ -69,18 +69,19 @@ for row, line in enumerate(vim.current.buffer):
 		vim.current.buffer.append("", row)
 		vim.current.buffer[row] = space + "@recordparametertype"
 
-vim.command("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
+if vim.eval("g:autodoc_debug_mode") == "0":
+	vim.command("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
 
-if vim.eval("g:autodoc_typehint_style") == "pep484":
-	autodoc.addpep484hint(vim.current.buffer, flag_return_type)
-else:
-	autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
-if vim.eval("g:autodoc_display_runtime_info") == "1":
-	autodoc.adddocstring_runtime_info(vim.current.buffer)
+	if vim.eval("g:autodoc_typehint_style") == "pep484":
+		autodoc.addpep484hint(vim.current.buffer, flag_return_type)
+	else:
+		autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
+	if vim.eval("g:autodoc_display_runtime_info") == "1":
+		autodoc.adddocstring_runtime_info(vim.current.buffer)
 
-vim.command("w")
-vim.command('call delete("autodocparameters.py")')
-vim.command('call delete(".autodocparameters.log")')
+	vim.command("w")
+	vim.command('call delete("autodocparameters.py")')
+	vim.command('call delete(".autodocparameters.log")')
 
 endOfPython
 endfunction
@@ -119,18 +120,19 @@ flag_return_type = (vim.eval("g:autodoc_display_return_type") == "1")
 
 vim.command("!cp {}/parameters.py ./autodocparameters.py".format(path))
 
-vim.command("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
+if vim.eval("g:autodoc_debug_mode") == "0":
+	vim.command("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
 
-if vim.eval("g:autodoc_typehint_style") == "pep484":
-	autodoc.addpep484hint(vim.current.buffer, flag_return_type)
-else:
-	autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
-if vim.eval("g:autodoc_display_runtime_info") == "1":
-	autodoc.adddocstring_runtime_info(vim.current.buffer)
+	if vim.eval("g:autodoc_typehint_style") == "pep484":
+		autodoc.addpep484hint(vim.current.buffer, flag_return_type)
+	else:
+		autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
+	if vim.eval("g:autodoc_display_runtime_info") == "1":
+		autodoc.adddocstring_runtime_info(vim.current.buffer)
 
-vim.command("w")
-vim.command('call delete("autodocparameters.py")')
-vim.command('call delete(".autodocparameters.log")')
+	vim.command("w")
+	vim.command('call delete("autodocparameters.py")')
+	vim.command('call delete(".autodocparameters.log")')
 
 endOfPython
 endfunction
@@ -211,6 +213,10 @@ endif
 
 if !exists("g:autodoc_typehint_style")
 	let g:autodoc_typehint_style = "pep484"
+endif
+
+if !exists("g:autodoc_debug_mode")
+	let g:autodoc_debug_mode = 0
 endif
 
 command! -nargs=* RecordParameter :call s:RecordAllFunctions(<f-args>)
