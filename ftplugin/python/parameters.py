@@ -1,42 +1,53 @@
 import json
 import time
 from functools import wraps
+import types
+import itertools
+from typing import Dict
 
-FUNCTION = dict()
 
+FUNCTION: Dict[str, Dict] = dict()
 
-def recordparametertype(func):
-
-    def gettypename(sth):
-        _type = type(sth)
-        if isinstance(sth, list) and len(sth) > 0:
-            return "list[" + gettypename(sth[0]) + "]"
-        elif isinstance(sth, tuple) and len(sth) > 0:
-            if len(sth) <= 5:
-                return "tuple[" + ",".join(
-                    [gettypename(sth[i]) for i in range(len(sth))]
-                ) + "]"
+def gettypename(sth):
+    _type = type(sth)
+    if isinstance(sth, list) and len(sth) > 0:
+        return "list[" + gettypename(sth[0]) + "]"
+    elif isinstance(sth, tuple) and len(sth) > 0:
+        if len(sth) <= 5:
+            return "tuple[" + ",".join(
+                [gettypename(sth[i]) for i in range(len(sth))]
+            ) + "]"
+        else:
+            flag = True
+            for i in range(1, len(sth)):
+                if gettypename(sth[i]) != gettypename(sth[0]):
+                    flag = False
+                    break
+            if flag:
+                return "tuple[" + gettypename(sth[0]) + ",...]"
             else:
-                flag = True
-                for i in range(1, len(sth)):
-                    if gettypename(sth[i]) != gettypename(sth[0]):
-                        flag = False
-                        break
-                if flag:
-                    return "tuple[" + gettypename(sth[0]) + ",...]"
-                else:
-                    return "tuple[" + ",".join(
-                        [gettypename(sth[i]) for i in range(5)]
-                    ) + ",...]"
-        elif isinstance(sth, set) and len(sth) > 0:
-            return "set[" + gettypename(list(sth)[0]) + "]"
-        elif isinstance(sth, dict) and len(sth) > 0:
+                return "tuple[" + ",".join(
+                    [gettypename(sth[i]) for i in range(5)]
+                ) + ",...]"
+    elif isinstance(sth, set) and len(sth) > 0:
+        return "set[" + gettypename(list(sth)[0]) + "]"
+    elif isinstance(sth, dict) and len(sth) > 0:
+        try:
             key = list(sth.keys())[0]
             return "dict[" + gettypename(key) +\
                     "," + gettypename(sth[key]) + "]"
-        else:
-            typestr = str(_type)
-            return typestr[(typestr.find("'") + 1):typestr.rfind("'")]
+        except IndexError:
+            return "dict"
+    elif isinstance(sth, types.GeneratorType):
+        return "generator"
+    elif isinstance(sth, range):
+        return "range"
+    else:
+        typestr = str(_type)
+        return typestr[(typestr.find("'") + 1):typestr.rfind("'")]
+
+def recordparametertype(func):
+
 
     global FUNCTION
 
@@ -71,7 +82,6 @@ def recordparametertype(func):
 
 
 class SetEncoder(json.JSONEncoder):
-
     def default(self, obj):
         if isinstance(obj, set):
             return sorted(list(obj))

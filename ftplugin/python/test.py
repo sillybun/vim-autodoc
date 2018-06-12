@@ -1,11 +1,11 @@
-from typing import Union
+from parameters import recordparametertype, logfunctionparameters, FUNCTION
 
-def f(a: Union[float, int], b: int) -> Union[float, int]:
-    return a + b
+@recordparametertype
+def f(a: int):
+    for i in range(a):
+        yield i**3
 
-def g(a: int, b: int) -> None:
-    a += b
+for i in f(3):
+    print(i)
 
-f(1, 2)
-f(1.0, 2)
-z = g(1, 2)
+print(FUNCTION)

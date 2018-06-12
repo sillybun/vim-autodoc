@@ -1,6 +1,6 @@
-from ipdb import set_trace
-from typing import List, Optional, Type, Dict
-
+from typing import List, Optional, Type, Dict, Iterable
+import types
+import parameters
 
 
 class ZYTType:
@@ -15,83 +15,62 @@ class ZYTType:
 
     BasicType = {
         "NoneType": type(None),
-        "int": type(1),
-        "float": type(1.0),
-        "str": type("1"),
-        "bool": type(True),
-        "bytes": type(b"1"),
-        "function": type(lambda x: x),
-        "type": type(type(1))
+        "int": int,
+        "float": float,
+        "str": str,
+        "bool": bool,
+        "bytes": bytes,
+        "function": types.FunctionType,
+        "builtin_function_or_method": types.BuiltinFunctionType,
+        "type": type,
     }
     CompondType = {
-        "list": type(list()),
-        "set": type(set()),
-        "dict": type(dict()),
-        "tuple": type(tuple())
+        "list": list,
+        "set": set,
+        "dict": dict,
+        "tuple": tuple,
+        "generator": types.GeneratorType,
+        "range": range
     }
     BasicTypePEP484 = {
         "None": type(None),
-        "int": type(1),
-        "float": type(1.0),
-        "str": type("1"),
-        "bool": type(True),
-        "bytes": type(b"1"),
-        "Type": type(type(1)),
-        "Callable": type(lambda x: x),
+        "int": int,
+        "float": float,
+        "str": str,
+        "bool": bool,
+        "bytes": bytes,
+        "Type": type,
+        "Callable": types.FunctionType,
     }
     CompondTypePEP484 = {
-        "List": type(list()),
-        "Set": type(set()),
-        "Dict": type(dict()),
-        "Tuple": type(tuple()),
+        "List": list,
+        "Set": set,
+        "Dict": type,
+        "Tuple": tuple,
+        "Iterable": types.GeneratorType,
     }
     BasicPEP484: Dict[Type, str] = {
         type(None): "None",
-        type(1): "int",
-        type(1.0): "float",
-        type("1"): "str",
-        type(True): "bool",
-        type(b"1"): "bytes",
-        type(lambda x: x): "Callable[..., Any]",
-        type(type(1)): "Type"
+        int: "int",
+        float: "float",
+        str: "str",
+        bool: "bool",
+        bytes: "bytes",
+        types.FunctionType: "Callable[..., Any]",
+        types.BuiltinMethodType: "Callable[..., Any]",
+        types.BuiltinFunctionType: "Callable[..., Any]",
+        type: "Type"
     }
     CompondPEP484: Dict[Type, str] = {
-        type(list()): "List",
-        type(set()): "Set",
-        type(dict()): "Dict",
-        type(tuple()): "Tuple"
+        list: "List",
+        set: "Set",
+        dict: "Dict",
+        tuple: "Tuple",
+        types.GeneratorType: "Iterable",
+        range: "Iterable[int]"
     }
-
     def gettypename(self, sth):
-        _type = type(sth)
-        if isinstance(sth, list) and len(sth) > 0:
-            return "list[" + self.gettypename(sth[0]) + "]"
-        elif isinstance(sth, tuple) and len(sth) > 0:
-            if len(sth) <= 5:
-                return "tuple[" + ",".join(
-                    [self.gettypename(sth[i]) for i in range(len(sth))]
-                ) + "]"
-            else:
-                flag = True
-                for i in range(1, len(sth)):
-                    if self.gettypename(sth[i]) != self.gettypename(sth[0]):
-                        flag = False
-                        break
-                if flag:
-                    return "tuple[" + self.gettypename(sth[0]) + ",...]"
-                else:
-                    return "tuple[" + ",".join(
-                        [self.gettypename(sth[i]) for i in range(5)]
-                    ) + ",...]"
-        elif isinstance(sth, set) and len(sth) > 0:
-            return "set[" + self.gettypename(list(sth)[0]) + "]"
-        elif isinstance(sth, dict) and len(sth) > 0:
-            key = list(sth.keys())[0]
-            return "dict[" + self.gettypename(key) +\
-                    "," + self.gettypename(sth[key]) + "]"
-        else:
-            typestr = str(_type)
-            return typestr[(typestr.find("'") + 1):typestr.rfind("'")]
+        return parameters.gettypename(sth)
 
     def fromvar(self, sth):
         self.fromAutoDoc(self.gettypename(sth))
@@ -212,7 +191,7 @@ class ZYTType:
                 if self.basicflag:
                     return True
                 else:
-                    if self.type != type(tuple):
+                    if self.type != tuple:
                         if othertype.subtype == None:
                             return True
                         elif self.subtype == None:
@@ -247,7 +226,7 @@ class ZYTType:
         elif self.type is not None:
             rstr: str = self.CompondPEP484[self.type]
             if self.subtype is None:
-                if self.type == type(tuple()):
+                if self.type == tuple:
                     return rstr + "[()]"
                 else:
                     return rstr
@@ -286,11 +265,9 @@ def unionpep484(types: List[ZYTType]) -> str:
 
 
 def main():
-    type1 = ZYTType().fromvar(1)
-    print(type1.generatepep484())
-    type2 = ZYTType().fromvar(1.0)
-    print(type2.generatepep484())
-    print(unionpep484([type1, type2]))
+    print(ZYTType().fromvar(sum).generatepep484())
+    print(ZYTType().fromvar(range(10)).generatepep484())
+    print(ZYTType().fromvar((t for t in range(2))).generatepep484())
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-def main():
+def main() -> None:
     print(gcd(15, 10))
     print(gcd(45, 12))
 

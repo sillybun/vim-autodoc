@@ -1,4 +1,3 @@
-from ipdb import set_trace
 def count(line, prev):
     """
     @type line: str
