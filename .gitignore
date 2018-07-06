@@ -1,2 +1,4 @@
 /ftplugin/python/__pycache__
 /test/__pycache__
+.mypy_cache/
+__pycache__/
