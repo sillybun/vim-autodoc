@@ -35,9 +35,17 @@ import vimbufferutil
 import autodoc
 import time
 from shutil import copyfile
+import sys
 
 start = 0
 peek = 0
+
+if int(vim.eval("a:0")) > 0 and ("python3" in vim.eval("a:1") or "py3" in vim.eval("a:1")):
+    py = "py3"
+else:
+    py = "py3" if sys.version[0] == "3" else "py2"
+
+print("python mode: {}".format(py))
 
 while True:
     if vim.current.buffer[peek].startswith("#"):
@@ -72,7 +80,7 @@ for row, line in enumerate(vim.current.buffer):
 if vim.eval("g:autodoc_debug_mode") == "0":
     vim.command("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
 
-    if vim.eval("g:autodoc_typehint_style") == "pep484":
+    if vim.eval("g:autodoc_typehint_style_" + py) == "pep484":
         autodoc.addpep484hint(vim.current.buffer, flag_return_type)
     else:
         autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
@@ -93,6 +101,13 @@ python3 << endOfPython
 import vim
 import countparentheses
 import autodoc
+
+if int(vim.eval("a:0")) > 0 and ("python3" in vim.eval("a:1") or "py3" in vim.eval("a:1")):
+    py = "py3"
+else:
+    py = "py3" if sys.version[0] == "3" else "py2"
+
+print("python mode: {}".format(py))
 
 currentindent = 999
 
@@ -123,7 +138,7 @@ vim.command("!cp {}/parameters.py ./autodocparameters.py".format(path))
 if vim.eval("g:autodoc_debug_mode") == "0":
     vim.command("call s:RunScript({})".format(", ".join(["'" + t + "'" for t in vim.eval("a:000")])))
 
-    if vim.eval("g:autodoc_typehint_style") == "pep484":
+    if vim.eval("g:autodoc_typehint_style_" + py) == "pep484":
         autodoc.addpep484hint(vim.current.buffer, flag_return_type)
     else:
         autodoc.adddocstring_paramtype(vim.current.buffer, flag_return_type)
@@ -211,8 +226,12 @@ if !exists('g:autodoc_display_runtime_info')
     let g:autodoc_display_runtime_info = 0
 endif
 
-if !exists('g:autodoc_typehint_style')
-    let g:autodoc_typehint_style = 'pep484'
+if !exists('g:autodoc_typehint_style_py3')
+    let g:autodoc_typehint_style_py3 = 'pep484'
+endif
+
+if !exists('g:autodoc_typehint_style_py2')
+    let g:autodoc_typehint_style_py2 = ''
 endif
 
 if !exists('g:autodoc_debug_mode')
